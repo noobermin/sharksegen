@@ -1,0 +1,164 @@
+begin:control
+  nx = 4000
+  ny = 4000
+  nparticles = nx * ny * 9
+
+  # Final time of simulation
+  t_end = 1 * pico
+
+  # Size of domain
+  x_min = -20. * micron
+  x_max = -x_min
+  y_min =  x_min
+  y_max = -y_min
+  field_ionisation = T
+  # particle_tstart = 40 * femto
+end:control
+
+
+begin:boundaries
+  bc_x_min = simple_laser
+  bc_x_max = simple_outflow
+  bc_y_min = simple_outflow
+  bc_y_max = simple_outflow
+end:boundaries
+
+
+begin:constant
+  lam   = 0.8 * micron
+  omega = 2.0 * pi * c / lam
+  den0 = 3.34e22 / cc
+  I0_Wcm2 = 1e19
+  #E0 = sqrt(2.0*I_Wcm2*1e4 / c / epsilon0)
+ # laser parameters 
+  w0 = lam * 2.0/ (0.5*pi) # f/2
+  l_xf = pi*w0^2/lam
+ # focal point
+  fpx = 0 * micron
+  fpy = 0 * micron
+  s = abs(y)
+ # temporal
+  t0      = 80*femto
+  tau     = t0/sqrt(2*loge(2))
+  tl_init = 1.5*tau
+  I0      = 1e19
+ # gaussian beam
+  l_x   = abs(x_min - fpx)
+  l_phi = 0.5*atan( l_x / l_xf) # 0.5 for 2D
+  l_gf  = 0.5*s^2 * ( l_x /(l_xf^2 + l_x^2) ) * omega / c
+  wx   = sqrt( 1.0 + (l_x / l_xf)^2)
+  w_bnd = w0 * wx
+ # target quantities
+  s_hwid = 0.1*micron #half width
+  s_hlen = 20*micron
+  s_xmin = -s_hwid
+  s_xmax =  s_hwid
+  s_ymin = -s_hlen
+  s_ymax =  s_hlen
+
+  p_rot  = 45/180*pi
+  p_x    =  x*cos(p_rot) + y*sin(p_rot);
+  p_y    = -x*sin(p_rot) + y*cos(p_rot);
+
+  p_rmax =  2.0*micron
+  p_xmin = -p_rmax
+  p_xmax =  p_rmax
+  p_ymin =  s_ymin - p_rmax
+  p_ymax =  s_ymax + p_rmax
+
+  p_rtop = sqrt((p_x)^2 + (p_y-s_ymax)^2)
+  p_rbot = sqrt((p_x)^2 + (p_y-s_ymin)^2) 
+
+  p_lf = 0.05*micron
+  p_lb = 0.05*micron
+end:constant
+
+begin:species
+  name = electron
+  charge = -1.0
+  mass = 1.0
+end:species
+
+begin:species
+  name = hydrogen0
+  charge = 0.0
+  mass = 1837
+  #solid center
+  number_density = if( \
+    (s_xmin lt p_x) and (p_x lt s_xmax) and (s_ymin lt p_y) and (p_y lt s_ymax),\
+                    2*den0, 0.0)
+  #left
+  number_density = if( \
+    (p_xmin lt p_x)and((p_x eq s_xmin)or(p_x lt s_xmin))and \
+            (s_ymin lt p_y)and(p_y lt s_ymax),\
+    2*den0*exp(-abs(p_x-s_xmin)/p_lf), number_density(hydrogen0))
+    
+  #right
+  number_density = if( \
+    ((s_xmax eq p_x)or(s_xmax lt p_x))and(p_x lt p_xmax)and \
+             (s_ymin lt p_y)and(p_y lt s_ymax),\
+    2*den0*exp(-abs(x-s_xmax)/p_lb), number_density(hydrogen0))
+    
+  #top solid
+  number_density = if( \
+    ((p_rtop lt s_hwid)or(p_rtop eq s_hwid)) and (p_y gt s_ymax),\
+    2*den0, number_density(hydrogen0))
+
+  #top fall off
+  number_density = if( \
+    (p_rtop lt p_rmax)and(p_rtop gt s_hwid)and(p_y gt s_ymax)and(p_y lt p_ymax),\
+    2*den0*exp(-(p_rtop-s_hwid)/p_lf), number_density(hydrogen0))
+                    
+  #bot solid
+  number_density = if( \
+    ((p_rbot lt s_hwid)or(p_rbot eq s_hwid)) and (p_y lt s_ymin),\
+    2*den0, number_density(hydrogen0))
+
+  #bot fall off
+  number_density = if( \
+    (p_rbot lt p_rmax)and(p_rbot gt s_hwid)and(p_y lt s_ymin)and(p_y gt p_ymin),\
+    2*den0*exp(-(p_rbot-s_hwid)/p_lf), number_density(hydrogen0))
+  ionisation_electron_species = electron
+  ionisation_energies = (13.6*ev)
+  temperature_ev = 0.0
+  nparticles = nx * ny * 16
+end:species
+
+begin:species
+  name = oxygen
+  charge = 0.0
+  mass = 29164.4,
+  ionisation_electron_species = electron
+  ionisation_energies = \
+      (13.6*ev, 35.1*ev, 54.9*ev, 77.4*ev, 113.9*ev, 138.1*ev, 739.4*ev, 871.4*ev)
+  temperature_ev = 0.0
+  nparticles = nx * ny * 16
+  number_density = number_density(hydrogen0)/2.0
+end:species
+
+
+begin:laser
+  boundary = x_min
+  intensity_w_cm2 = I0
+  lambda = lam
+  profile = sqrt(1/wx)*gauss(s, 0.0, w_bnd)*gauss(time,tl_init,tau)
+  t_profile = gauss(time,tl_init,tau)
+  t_end = tau*3
+  phase = l_phi + l_gf
+end:laser
+
+begin:output_global
+  force_final_to_be_restartable = T
+end:output_global
+
+begin:output
+  name = normal
+  # Simulated time between output dumps
+  dt_snapshot = 1 * femto
+  restart_dump_every = 1
+  charge = T
+  mass   = T
+  ejected_particles = T
+  number_density    = T
+end:output
+
