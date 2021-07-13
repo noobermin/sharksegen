@@ -155,9 +155,9 @@ begin:output
   # Simulated time between output dumps
   dt_snapshot = 1 * femto
   restart_dump_every = 1
-  charge = T
-  mass   = T
-  ejected_particles = T
-  number_density    = T
+  charge = always
+  mass   = always
+  ejected_particles = always
+  number_density    = always
 end:output
 
