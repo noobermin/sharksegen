@@ -147,10 +147,6 @@ begin:laser
   phase = l_phi + l_gf
 end:laser
 
-begin:output_global
-  force_final_to_be_restartable = T
-end:output_global
-
 begin:output
   # Simulated time between output dumps
   dt_snapshot = 1 * femto
