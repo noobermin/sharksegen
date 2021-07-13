@@ -127,13 +127,13 @@ end:species
 begin:species
   name = oxygen
   charge = 0.0
-  mass = 29164.4,
+  mass = 29164.4
+  number_density = number_density(hydrogen0)/2.0
   ionisation_electron_species = electron
   ionisation_energies = \
       (13.6*ev, 35.1*ev, 54.9*ev, 77.4*ev, 113.9*ev, 138.1*ev, 739.4*ev, 871.4*ev)
   temperature_ev = 0.0
   nparticles = nx * ny * 16
-  number_density = number_density(hydrogen0)/2.0
 end:species
 
 
