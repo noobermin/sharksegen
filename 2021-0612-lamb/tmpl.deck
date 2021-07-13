@@ -57,8 +57,8 @@ begin:constant
   s_ymax =  s_hlen
 
   p_rot  = 45/180*pi
-  p_x    =  x*cos(p_rot) + y*sin(p_rot);
-  p_y    = -x*sin(p_rot) + y*cos(p_rot);
+  p_x    =  x*cos(p_rot) + y*sin(p_rot)
+  p_y    = -x*sin(p_rot) + y*cos(p_rot)
 
   p_rmax =  2.0*micron
   p_xmin = -p_rmax
