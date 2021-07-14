@@ -1,7 +1,7 @@
 begin:control
   nx = 4000
   ny = 4000
-  
+  nparticles = 16000000 
   # Final time of simulation
   t_end = 1 * pico
 
@@ -73,67 +73,70 @@ begin:constant
 end:constant
 
 begin:species
-  name = electron
-  charge = -1.0
-  mass = 1.0
-end:species
-
-begin:species
-  name = hydrogen0
+  name = oxygen
   charge = 0.0
-  mass = 1837
+  mass = 29164.4
   #solid center
   number_density = if( \
     (s_xmin lt p_x) and (p_x lt s_xmax) and (s_ymin lt p_y) and (p_y lt s_ymax),\
-                    2*den0, 0.0)
+    den0, 0.0)
   #left
   number_density = if( \
     (p_xmin lt p_x)and((p_x eq s_xmin)or(p_x lt s_xmin))and \
             (s_ymin lt p_y)and(p_y lt s_ymax),\
-    2*den0*exp(-abs(p_x-s_xmin)/p_lf), number_density(hydrogen0))
+    den0*exp(-abs(p_x-s_xmin)/p_lf), number_density(oxygen))
     
   #right
   number_density = if( \
     ((s_xmax eq p_x)or(s_xmax lt p_x))and(p_x lt p_xmax)and \
              (s_ymin lt p_y)and(p_y lt s_ymax),\
-    2*den0*exp(-abs(x-s_xmax)/p_lb), number_density(hydrogen0))
+    den0*exp(-abs(x-s_xmax)/p_lb), number_density(oxygen))
     
   #top solid
   number_density = if( \
     ((p_rtop lt s_hwid)or(p_rtop eq s_hwid)) and (p_y gt s_ymax),\
-    2*den0, number_density(hydrogen0))
+    den0, number_density(oxygen))
 
   #top fall off
   number_density = if( \
     (p_rtop lt p_rmax)and(p_rtop gt s_hwid)and(p_y gt s_ymax)and(p_y lt p_ymax),\
-    2*den0*exp(-(p_rtop-s_hwid)/p_lf), number_density(hydrogen0))
+    den0*exp(-(p_rtop-s_hwid)/p_lf), number_density(oxygen))
                     
   #bot solid
   number_density = if( \
     ((p_rbot lt s_hwid)or(p_rbot eq s_hwid)) and (p_y lt s_ymin),\
-    2*den0, number_density(hydrogen0))
+    den0, number_density(oxygen))
 
   #bot fall off
   number_density = if( \
     (p_rbot lt p_rmax)and(p_rbot gt s_hwid)and(p_y lt s_ymin)and(p_y gt p_ymin),\
-    2*den0*exp(-(p_rbot-s_hwid)/p_lf), number_density(hydrogen0))
-  ionisation_electron_species = electron
-  ionisation_energies = (13.6*ev)
-  temperature_ev = 0.0
-  nparticles = nx * ny * 16
-end:species
-
-begin:species
-  name = oxygen
-  charge = 0.0
-  mass = 29164.4
-  number_density = number_density(hydrogen0)/2.0
+    den0*exp(-(p_rbot-s_hwid)/p_lf), number_density(oxygen))
+    
   ionisation_electron_species = electron
   ionisation_energies = \
       (13.6*ev, 35.1*ev, 54.9*ev, 77.4*ev, 113.9*ev, 138.1*ev, 739.4*ev, 871.4*ev)
   temperature_ev = 0.0
-  nparticles = nx * ny * 16
+  fraction = 0.33333
 end:species
+
+begin:species
+  name = hydrogen
+  charge = 0.0
+  mass = 1837
+  number_density = number_density(hydrogen0)/2.0
+  ionisation_electron_species = electron
+  ionisation_energies = (13.6*ev)
+  temperature_ev = 0.0
+  fraction = 0.66667
+end:species
+
+
+begin:species
+  name = electron
+  charge = -1.0
+  mass = 1.0
+end:species
+
 
 
 begin:laser
@@ -149,7 +152,14 @@ end:laser
 begin:output
   # Simulated time between output dumps
   dt_snapshot = 1 * femto
-  restart_dump_every = 1
+  restart_dump_every = 10
+  grid = always
+  ex = always
+  ey = always
+  ez = always
+  bx = always
+  by = always
+  bz = always
   charge = always
   mass   = always
   ejected_particles = always
