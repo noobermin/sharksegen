@@ -1,8 +1,7 @@
 begin:control
   nx = 4000
   ny = 4000
-  nparticles = nx * ny * 9
-
+  
   # Final time of simulation
   t_end = 1 * pico
 
