@@ -123,7 +123,7 @@ begin:species
   name = hydrogen
   charge = 0.0
   mass = 1837
-  number_density = number_density(hydrogen0)/2.0
+  number_density = number_density(oxygen)
   ionisation_electron_species = electron
   ionisation_energies = (13.6*ev)
   temperature_ev = 0.0
