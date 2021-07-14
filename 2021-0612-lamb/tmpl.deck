@@ -162,7 +162,7 @@ begin:output
   bz = always
   charge = always
   mass   = always
-  ejected_particles = always
-  number_density    = always
+  ejected_particles = always + species
+  number_density    = always + species
 end:output
 
